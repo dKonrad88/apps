@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14b8a6">
+<meta name="description" content="Biblioteca dos apps pessoais: toque para abrir.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Apps">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.17.0/dist/tabler-icons.min.css">
+<title>Apps — biblioteca pessoal</title>
+<style>
+  :root{
+    --bg:#f4f7f6; --card:#ffffff; --ink:#15211f; --muted:#6b7c78;
+    --line:#e4ebe9; --accent:#0d9488; --accent-soft:#d7f0ec;
+    --radius:18px; --shadow:0 1px 3px rgba(16,40,36,.08), 0 1px 2px rgba(16,40,36,.04);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#1a1c1b; --card:#26302e; --ink:#eef3f1; --muted:#9bb0ab;
+      --line:#33403d; --accent:#2dd4bf; --accent-soft:#1f3a36;
+      --shadow:0 1px 3px rgba(0,0,0,.3); }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.4;
+    min-height:100vh; min-height:100dvh;
+  }
+  .wrap{max-width:560px; margin:0 auto; padding:0 16px 32px;}
+
+  header{
+    padding:calc(env(safe-area-inset-top) + 22px) 4px 18px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+  }
+  .hi small{display:block; font-size:13px; color:var(--muted); margin-bottom:2px;}
+  .hi h1{margin:0; font-size:24px; font-weight:700; letter-spacing:-.02em;}
+  .avatar{
+    width:40px; height:40px; border-radius:50%; flex:none;
+    background:var(--accent-soft); color:var(--accent);
+    display:grid; place-items:center; font-size:20px; font-weight:700;
+  }
+
+  .list{ display:flex; flex-direction:column; gap:10px; }
+
+  .row{
+    appearance:none; width:100%; border:1px solid var(--line); background:var(--card);
+    border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:12px 14px; cursor:pointer; text-align:left;
+    display:flex; align-items:center; gap:14px;
+    color:inherit; text-decoration:none;
+    transition:transform .08s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .row:active{ transform:scale(.985); }
+  .row:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  @media (hover:hover){ .row:hover{ border-color:var(--accent); box-shadow:0 4px 14px rgba(16,40,36,.10);} }
+  .row.soon{ opacity:.55; cursor:default; border-style:dashed; }
+  .row.soon:active{ transform:none; }
+
+  .ic{
+    width:46px; height:46px; border-radius:13px; flex:none;
+    display:grid; place-items:center; font-size:24px;
+  }
+  .rtext{ flex:1; min-width:0; }
+  .tname{ font-size:15px; font-weight:600; line-height:1.25; }
+  .tsub{ font-size:12.5px; font-weight:400; color:var(--muted); margin-top:1px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .chev{ flex:none; color:var(--muted); font-size:20px; display:flex; }
+  .badge{ flex:none; font-size:10px; font-weight:600; color:var(--muted);
+    background:var(--line); border-radius:999px; padding:3px 9px; }
+
+  footer{ text-align:center; color:var(--muted); font-size:12px; margin-top:26px; line-height:1.6; }
+  footer a{ color:var(--accent); text-decoration:none; }
+  .install{ display:none; margin:18px auto 0; }
+  .install.show{ display:inline-flex; align-items:center; gap:8px;
+    background:var(--accent); color:#fff; border:0; font-weight:600; font-size:14px;
+    padding:11px 18px; border-radius:13px; cursor:pointer; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="hi">
+        <small id="greet">Biblioteca pessoal</small>
+        <h1>Seus apps</h1>
+      </div>
+      <div class="avatar" id="avatar"><i class="ti ti-apps"></i></div>
+    </header>
+
+    <main class="list" id="list" aria-label="Lista de apps"></main>
+
+    <button class="install" id="installBtn" type="button"><i class="ti ti-download"></i> Instalar este launcher</button>
+
+    <footer>
+      Toque num app para abrir.<br>
+      <span id="ver"></span>
+    </footer>
+  </div>
+
+<script>
+/* ============================================================
+   CONFIG — adicionar app novo = +1 item neste array.
+   icon: nome do Tabler (https://tabler.io/icons). color: cor do ícone.
+   bg: fundo do quadradinho. soon:true = "em breve" (não abre).
+   ============================================================ */
+var APPS = [
+  { name:'HUB Pessoal',     sub:'Central',          url:'https://dkonrad88.github.io/hubpessoal/',      icon:'ti-layout-dashboard', color:'#0F6E56', bg:'#E1F5EE' },
+  { name:'Foco',            sub:'Hábitos',          url:'https://dkonrad88.github.io/Foco/',            icon:'ti-target-arrow',     color:'#534AB7', bg:'#EEEDFE' },
+  { name:'Estudar Inglês',  sub:'Vocabulário',      url:'https://dkonrad88.github.io/english-trainer/', icon:'ti-language',         color:'#854F0B', bg:'#FAEEDA' },
+  { name:'A Tempo',         sub:'Que horas sair?',  url:'https://dkonrad88.github.io/horas/',           icon:'ti-clock-hour-8',     color:'#185FA5', bg:'#E6F1FB' },
+  { name:'Lista',           sub:'Supermercado',     url:'https://dkonrad88.github.io/lista/',           icon:'ti-shopping-cart',    color:'#3B6D11', bg:'#EAF3DE' }
+  // ,{ name:'Strava', sub:'Atividades', url:'https://dkonrad88.github.io/strava/', icon:'ti-run', color:'#993C1D', bg:'#FAECE7', soon:true }
+];
+
+/* Como abrir um app ao tocar.
+   false = mesma janela (sensação de "app único", volta pelo botão voltar) — DEFAULT.
+   true  = nova aba/janela (mantém o launcher aberto atrás). */
+var OPEN_IN_NEW_TAB = false;
+
+/* ---- render da grade ---- */
+function openApp(app){
+  if(app.soon) return;
+  if(OPEN_IN_NEW_TAB) window.open(app.url, '_blank', 'noopener');
+  else window.location.href = app.url;
+}
+function el(tag, cls){ var e=document.createElement(tag); if(cls)e.className=cls; return e; }
+function renderList(){
+  var list=document.getElementById('list');
+  list.innerHTML='';
+  APPS.forEach(function(app){
+    var row = app.soon ? el('div','row soon') : el('a','row');
+    if(!app.soon){ row.href=app.url; row.rel='noopener'; if(OPEN_IN_NEW_TAB) row.target='_blank'; }
+    row.setAttribute('role','button');
+    row.setAttribute('aria-label', app.name + (app.sub ? ' — '+app.sub : ''));
+    row.addEventListener('click', function(ev){ if(app.soon){ev.preventDefault();return;} ev.preventDefault(); openApp(app); });
+
+    var ic=el('div','ic'); ic.style.background=app.bg; ic.style.color=app.color;
+    ic.appendChild(el('i','ti '+app.icon)); row.appendChild(ic);
+
+    var tx=el('div','rtext');
+    var nm=el('div','tname'); nm.textContent=app.name; tx.appendChild(nm);
+    if(app.sub){ var sb=el('div','tsub'); sb.textContent=app.sub; tx.appendChild(sb); }
+    row.appendChild(tx);
+
+    if(app.soon){ var bd=el('div','badge'); bd.textContent='em breve'; row.appendChild(bd); }
+    else { var ch=el('div','chev'); ch.appendChild(el('i','ti ti-chevron-right')); row.appendChild(ch); }
+    list.appendChild(row);
+  });
+}
+renderList();
+try{ document.getElementById('ver').textContent='v1 · '+APPS.length+' apps'; }catch(e){}
+
+/* ---- Service worker (PWA) ---- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    try{ navigator.serviceWorker.register('./sw.js'); }catch(e){}
+  });
+}
+
+/* ---- Android: convite de instalação DESTE launcher (opcional, some no iOS) ---- */
+var deferredPrompt=null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault(); deferredPrompt=e;
+  var b=document.getElementById('installBtn'); if(b) b.classList.add('show');
+});
+(function(){
+  var b=document.getElementById('installBtn'); if(!b) return;
+  b.addEventListener('click', function(){
+    if(!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.finally(function(){ deferredPrompt=null; b.classList.remove('show'); });
+  });
+})();
+
+/* ---- Saudação opcional via sessão Supabase COMPARTILHADA (mesma origin).
+   Portal funciona 100% sem isso; se já há sessão de outro app, mostra "Olá, <nome>".
+   Não há tela de login aqui — é só leitura da sessão existente. ---- */
+(function(){
+  var s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  s.async=true;
+  s.onload=function(){
+    try{
+      var SB_URL='https://jlouesrrmqeauzlgvrpw.supabase.co';
+      var SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impsb3Vlc3JybXFlYXV6bGd2cnB3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMDg1MjYsImV4cCI6MjA5NjY4NDUyNn0.hRgHOpPR8KBPHqBGXGXVPmNv01tCRmOPfB3Qk6pF6eI';
+      var sb=supabase.createClient(SB_URL, SB_ANON);
+      sb.auth.getSession().then(function(r){
+        var u=r && r.data && r.data.session && r.data.session.user;
+        if(!u) return;
+        var nm=(u.user_metadata && (u.user_metadata.name || u.user_metadata.full_name)) || (u.email ? u.email.split('@')[0] : '');
+        if(!nm) return;
+        nm = nm.charAt(0).toUpperCase()+nm.slice(1);
+        document.getElementById('greet').textContent='Olá, '+nm;
+        var av=document.getElementById('avatar'); if(av) av.textContent=nm.charAt(0).toUpperCase();
+      }).catch(function(){});
+    }catch(e){}
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>
