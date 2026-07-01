@@ -88,6 +88,7 @@
         <small id="greet">Biblioteca pessoal</small>
         <h1>Seus apps</h1>
       </div>
+      <button class="avatar" id="refreshBtn" type="button" title="Atualizar (limpa o cache)" aria-label="Atualizar" style="border:0;cursor:pointer;font-family:inherit;margin-right:8px"><i class="ti ti-refresh"></i></button>
       <div class="avatar" id="avatar"><i class="ti ti-apps"></i></div>
     </header>
 
@@ -162,6 +163,19 @@ if('serviceWorker' in navigator){
     try{ navigator.serviceWorker.register('./sw.js'); }catch(e){}
   });
 }
+
+/* ---- Atualizar (limpa o cache do service worker e pega a versão nova) ---- */
+async function updateApp(){
+  try{
+    if(!('serviceWorker' in navigator)){ location.reload(); return; }
+    var reg=await navigator.serviceWorker.getRegistration();
+    if(reg){ try{ await reg.update(); }catch(e){} }
+    if(reg&&reg.waiting){ var done=false; navigator.serviceWorker.addEventListener('controllerchange',function(){ if(done)return; done=true; location.reload(); }); reg.waiting.postMessage({type:'SKIP_WAITING'}); setTimeout(function(){ if(!done){ done=true; location.reload(); } },1500); return; }
+    if(window.caches){ var ks=await caches.keys(); await Promise.all(ks.map(function(k){ return caches.delete(k); })); }
+    location.reload();
+  }catch(e){ location.reload(); }
+}
+(function(){ var b=document.getElementById('refreshBtn'); if(b) b.addEventListener('click', updateApp); })();
 
 /* ---- Android: convite de instalação DESTE launcher (opcional, some no iOS) ---- */
 var deferredPrompt=null;
