@@ -5,7 +5,7 @@
    - Supabase (saudação): NUNCA passa pelo cache. Sempre rede.
    - Demais GET (CDNs: Tabler icons, supabase-js): stale-while-revalidate.
    Bump CACHE quando quiser forçar limpeza do cache antigo. */
-var CACHE = 'apps-v1';
+var CACHE = 'apps-v2';
 var SHELL = ['./', './index.html', './manifest.json',
              './apple-touch-icon.png', './icon-192.png', './icon-512.png'];
 
